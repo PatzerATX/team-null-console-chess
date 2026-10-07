@@ -27,4 +27,5 @@ bin/
 .vscode/
 
 ### Mac OS ###
-.DS_Storeclass_method_descriptions.txt
+.DS_Store
+class_method_descriptions.txt
