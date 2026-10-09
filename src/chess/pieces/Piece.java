@@ -71,6 +71,27 @@ public abstract class Piece {
     }
 
     /**
+     * Returns this kind of piece's name for messages, such as "Rook" or "Pawn".
+     * It uses the subclass's own class name, so no subclass needs to override it.
+     *
+     * @return the piece's type name
+     */
+    public String getName() {
+        return getClass().getSimpleName();
+    }
+
+    /**
+     * Checks whether this piece should be promoted where it now stands.
+     * Most pieces never promote, so this returns {@code false}; {@link Pawn}
+     * overrides it to return {@code true} on the far rank.
+     *
+     * @return {@code true} if the piece should be replaced by a queen
+     */
+    public boolean isPromotable() {
+        return false;
+    }
+
+    /**
      * Checks whether this piece could move to the given square in its pattern.
      *
      * @param board       the current board
@@ -120,6 +141,26 @@ public abstract class Piece {
                     break;
                 }
                 next = next.offset(direction[0], direction[1]);
+            }
+        }
+        return moves;
+    }
+
+    /**
+     * Collects the squares reached by a single hop with each given offset.
+     * A square is included if it is on the board and is empty or holds an
+     * enemy piece. Used by pieces that move exactly once, like the knight and king.
+     *
+     * @param board   the current board
+     * @param offsets pairs of {rowChange, colChange}, such as {@code {-2, 1}}
+     * @return all squares the piece can land on with those offsets
+     */
+    protected List<Position> step(Board board, int[][] offsets) {
+        List<Position> moves = new ArrayList<>();
+        for (int[] offset : offsets) {
+            Position target = position.offset(offset[0], offset[1]);
+            if (target != null && canLandOn(board, target)) {
+                moves.add(target);
             }
         }
         return moves;
