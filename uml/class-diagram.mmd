@@ -1,0 +1,195 @@
+---
+title: Console Chess - UML Class Diagram (CS3354 Phase 1)
+---
+classDiagram
+    direction TB
+
+    namespace chess_console {
+        class ChessApp {
+            -ChessApp()
+            +main(args: String[])$ void
+        }
+        class ConsoleUI {
+            -EMPTY_SQUARE: String$
+            -scanner: Scanner
+            -parser: InputParser
+            -game: Game
+            +ConsoleUI(scanner: Scanner)
+            +run() void
+            -handleInput(command: Command, input: String) boolean
+            -handleMove(input: String) boolean
+            -printBoard() void
+            -printHelp() void
+            -printHistory() void
+            -printAllCaptured() void
+        }
+        class InputParser {
+            +getCommand(input: String) Command
+            +parseMove(input: String) Position[]
+        }
+        class Command {
+            <<enumeration>>
+            MOVE
+            HELP
+            HISTORY
+            CAPTURED
+            RESTART
+            QUIT
+        }
+    }
+
+    namespace chess_service {
+        class Game {
+            -board: Board
+            -whitePlayer: Player
+            -blackPlayer: Player
+            -currentTurn: PieceColor
+            -winner: Player
+            -moveHistory: List~String~
+            +Game(whiteName: String, blackName: String)
+            +start() void
+            +tryMove(from: Position, to: Position) MoveResult
+            -applyMove(piece: Piece, from: Position, to: Position) MoveResult
+            -recordMove(...) void
+            +isInCheck(color: PieceColor) boolean
+            +isOver() boolean
+            +getWinner() Player
+            +getBoard() Board
+            +getCurrentPlayer() Player
+            +getMoveHistory() List~String~
+        }
+        class MoveResult {
+            -success: boolean
+            -message: String
+            -MoveResult(success: boolean, message: String)
+            +success(message: String)$ MoveResult
+            +failure(message: String)$ MoveResult
+            +isSuccess() boolean
+            +getMessage() String
+        }
+    }
+
+    namespace chess_model {
+        class Board {
+            -grid: Piece[][]
+            -capturedPieces: List~Piece~
+            +initialize() void
+            +clear() void
+            +getPiece(position: Position) Piece
+            +isEmpty(position: Position) boolean
+            +placePiece(piece: Piece) void
+            +getPieces(color: PieceColor) List~Piece~
+            +findKing(color: PieceColor) Position
+            +isPathClear(from: Position, to: Position) boolean
+            +movePiece(from: Position, to: Position) Piece
+            +getCapturedPieces() List~Piece~
+        }
+        class Player {
+            -name: String
+            -color: PieceColor
+            +getName() String
+            +getColor() PieceColor
+            +toString() String
+        }
+        class Position {
+            +BOARD_SIZE: int$
+            -row: int
+            -col: int
+            +Position(row: int, col: int)
+            +fromNotation(notation: String)$ Position
+            +isOnBoard(row: int, col: int)$ boolean
+            +offset(rowChange: int, colChange: int) Position
+            +getRow() int
+            +getCol() int
+            +toString() String
+            +equals(other: Object) boolean
+            +hashCode() int
+        }
+        class PieceColor {
+            <<enumeration>>
+            WHITE
+            BLACK
+            -prefix: char
+            -forwardDirection: int
+            +getPrefix() char
+            +getForwardDirection() int
+            +opposite() PieceColor
+            +displayName() String
+        }
+    }
+
+    namespace chess_pieces {
+        class Piece {
+            <<abstract>>
+            -color: PieceColor
+            -position: Position
+            #Piece(color: PieceColor, position: Position)
+            +possibleMoves(board: Board)* List~Position~
+            #getLetter()* char
+            +getSymbol() String
+            +getName() String
+            +isPromotable() boolean
+            +canMoveTo(board: Board, destination: Position) boolean
+            +move(newPosition: Position) void
+            #slide(board: Board, directions: int[][]) List~Position~
+            #step(board: Board, offsets: int[][]) List~Position~
+            #isEnemy(other: Piece) boolean
+            #canLandOn(board: Board, square: Position) boolean
+        }
+        class Rook {
+            -DIRECTIONS: int[][]$
+            +possibleMoves(board: Board) List~Position~
+            #getLetter() char
+        }
+        class Bishop {
+            -DIRECTIONS: int[][]$
+            +possibleMoves(board: Board) List~Position~
+            #getLetter() char
+        }
+        class Queen {
+            -DIRECTIONS: int[][]$
+            +possibleMoves(board: Board) List~Position~
+            #getLetter() char
+        }
+        class Knight {
+            -JUMPS: int[][]$
+            +possibleMoves(board: Board) List~Position~
+            #getLetter() char
+        }
+        class King {
+            -NEIGHBORS: int[][]$
+            +possibleMoves(board: Board) List~Position~
+            #getLetter() char
+        }
+        class Pawn {
+            -WHITE_START_ROW: int$
+            -BLACK_START_ROW: int$
+            +possibleMoves(board: Board) List~Position~
+            +isPromotable() boolean
+            -isOnStartingRank() boolean
+            #getLetter() char
+        }
+    }
+
+    %% Inheritance
+    Piece <|-- Rook
+    Piece <|-- Bishop
+    Piece <|-- Queen
+    Piece <|-- Knight
+    Piece <|-- King
+    Piece <|-- Pawn
+
+    %% Associations
+    ChessApp ..> ConsoleUI : creates
+    ConsoleUI --> "1" Game : plays
+    ConsoleUI *-- "1" InputParser
+    InputParser ..> Command : returns
+    InputParser ..> Position : creates
+    Game *-- "1" Board
+    Game *-- "2" Player
+    Game ..> MoveResult : returns
+    Board o-- "0..32" Piece : holds
+    Piece --> "1" Position
+    Piece --> "1" PieceColor
+    Piece ..> Board : reads
+    Player --> "1" PieceColor
