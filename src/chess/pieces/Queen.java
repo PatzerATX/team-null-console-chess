@@ -48,4 +48,24 @@ public class Queen extends Piece {
     protected char getLetter() {
         return 'Q';
     }
+
+    /**
+     * Returns the queen's value for the computer opponent.
+     *
+     * @return {@code 900} centipawns
+     */
+    @Override
+    public int getValue() {
+        return 900;
+    }
+
+    /**
+     * Creates a new queen of the same color on the same square.
+     *
+     * @return a fresh Queen
+     */
+    @Override
+    protected Piece createCopy() {
+        return new Queen(getColor(), getPosition());
+    }
 }

@@ -61,7 +61,11 @@ public class ConsoleUI {
                 printBoard();
             }
             if (game.isOver()) {
-                System.out.println("Game over. " + game.getWinner() + " wins!");
+                if (game.getWinner() != null) {
+                    System.out.println("Game over. Checkmate: " + game.getWinner() + " wins!");
+                } else {
+                    System.out.println("Game over. Stalemate: the game is a draw.");
+                }
                 System.out.print("Type restart to play again, or quit to exit: ");
             } else {
                 System.out.print(game.getCurrentPlayer() + " to move: ");
@@ -131,7 +135,7 @@ public class ConsoleUI {
     private boolean handleMove(String input) {
         try {
             Position[] move = parser.parseMove(input);
-            MoveResult result = game.tryMove(move[0], move[1]);
+            MoveResult result = game.tryMove(move[0], move[1], parser.parsePromotion(input));
             if (result.isSuccess()) {
                 System.out.println(result.getMessage());
                 return true;
@@ -148,8 +152,11 @@ public class ConsoleUI {
         System.out.println("How to play:");
         System.out.println("  Type a move as FROM TO, for example E2 E4 (E2-E4 and e2e4 also work).");
         System.out.println("  Capture by moving onto an opponent's piece.");
-        System.out.println("  A pawn that reaches the far rank becomes a queen.");
-        System.out.println("  The game ends when a king is captured.");
+        System.out.println("  Castle by moving the king two squares, for example E1 G1 or E1 C1.");
+        System.out.println("  A pawn reaching the far rank becomes a queen; add Q, R, B or N to choose,");
+        System.out.println("  for example E7 E8 N.");
+        System.out.println("  You can't make a move that leaves your own king in check.");
+        System.out.println("  The game ends in checkmate (a win) or stalemate (a draw).");
         System.out.println("Commands:");
         System.out.println("  help      show this message");
         System.out.println("  history   list the moves made so far");
@@ -160,14 +167,14 @@ public class ConsoleUI {
 
     /** Prints every move made so far, or a note if there are none. */
     private void printHistory() {
-        List<String> history = game.getMoveHistory();
+        List<String> history = game.getHistoryLines();
         if (history.isEmpty()) {
             System.out.println("No moves yet.");
             return;
         }
         System.out.println("Moves so far:");
-        for (String move : history) {
-            System.out.println("  " + move);
+        for (String line : history) {
+            System.out.println("  " + line);
         }
     }
 

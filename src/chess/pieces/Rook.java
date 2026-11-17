@@ -47,4 +47,24 @@ public class Rook extends Piece {
     protected char getLetter() {
         return 'R';
     }
+
+    /**
+     * Returns the rook's value for the computer opponent.
+     *
+     * @return {@code 500} centipawns
+     */
+    @Override
+    public int getValue() {
+        return 500;
+    }
+
+    /**
+     * Creates a new rook of the same color on the same square.
+     *
+     * @return a fresh Rook
+     */
+    @Override
+    protected Piece createCopy() {
+        return new Rook(getColor(), getPosition());
+    }
 }

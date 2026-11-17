@@ -9,8 +9,9 @@ import java.util.List;
 /**
  * A king, which moves exactly one square in any direction.
  *
- * <p>This simplified version does not check whether a move puts the king
- * in check, and castling is not supported.</p>
+ * <p>This class only knows the king's basic one-square moves. Moving into
+ * check and castling are handled by {@code ChessRules}, because they depend
+ * on the whole board and on whether the king and rook have moved.</p>
  */
 public class King extends Piece {
 
@@ -50,5 +51,35 @@ public class King extends Piece {
     @Override
     protected char getLetter() {
         return 'K';
+    }
+
+    /**
+     * Returns the king's value for the computer opponent.
+     *
+     * @return {@code 0} centipawns
+     */
+    @Override
+    public int getValue() {
+        return 0;
+    }
+
+    /**
+     * Creates a new king of the same color on the same square.
+     *
+     * @return a fresh King
+     */
+    @Override
+    protected Piece createCopy() {
+        return new King(getColor(), getPosition());
+    }
+
+    /**
+     * Identifies this piece as a king.
+     *
+     * @return {@code true}
+     */
+    @Override
+    public boolean isKing() {
+        return true;
     }
 }

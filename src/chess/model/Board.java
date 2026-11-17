@@ -1,12 +1,7 @@
 package chess.model;
 
-import chess.pieces.Bishop;
-import chess.pieces.King;
-import chess.pieces.Knight;
-import chess.pieces.Pawn;
 import chess.pieces.Piece;
-import chess.pieces.Queen;
-import chess.pieces.Rook;
+import chess.pieces.PieceFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,8 +16,11 @@ import java.util.List;
  * so {@code grid[0][0]} is A8 and {@code grid[7][7]} is H1.</p>
  *
  * <p>The board stores pieces and carries out moves, but it does not decide
- * whether a move is legal. {@code Game} checks the rules first and only then
- * calls {@link #movePiece(Position, Position)}.</p>
+ * whether a move is legal. {@code ChessRules} and {@code Game} check the rules
+ * first and only then call {@link #movePiece(Position, Position)}.</p>
+ *
+ * <p>{@link #copy()} makes an independent duplicate, so the rules engine and
+ * the computer opponent can try moves without changing the real board.</p>
  */
 public class Board {
 
@@ -36,6 +34,25 @@ public class Board {
     public Board() {
         grid = new Piece[Position.BOARD_SIZE][Position.BOARD_SIZE];
         capturedPieces = new ArrayList<>();
+    }
+
+    /**
+     * Returns an independent copy of this board. Every piece is copied too, so
+     * moving pieces on the copy never affects this board.
+     *
+     * @return a duplicate board with the same pieces and captured list
+     */
+    public Board copy() {
+        Board duplicate = new Board();
+        for (int row = 0; row < Position.BOARD_SIZE; row++) {
+            for (int col = 0; col < Position.BOARD_SIZE; col++) {
+                if (grid[row][col] != null) {
+                    duplicate.grid[row][col] = grid[row][col].copy();
+                }
+            }
+        }
+        duplicate.capturedPieces.addAll(capturedPieces);
+        return duplicate;
     }
 
     /**
@@ -68,14 +85,10 @@ public class Board {
      * @param row   the array row of that side's back rank
      */
     private void placeBackRank(PieceColor color, int row) {
-        placePiece(new Rook(color, new Position(row, 0)));
-        placePiece(new Knight(color, new Position(row, 1)));
-        placePiece(new Bishop(color, new Position(row, 2)));
-        placePiece(new Queen(color, new Position(row, 3)));
-        placePiece(new King(color, new Position(row, 4)));
-        placePiece(new Bishop(color, new Position(row, 5)));
-        placePiece(new Knight(color, new Position(row, 6)));
-        placePiece(new Rook(color, new Position(row, 7)));
+        for (int col = 0; col < Position.BOARD_SIZE; col++) {
+            char letter = PieceFactory.BACK_RANK.charAt(col);
+            placePiece(PieceFactory.create(letter, color, new Position(row, col)));
+        }
     }
 
     /**
@@ -86,7 +99,7 @@ public class Board {
      */
     private void placePawns(PieceColor color, int row) {
         for (int col = 0; col < Position.BOARD_SIZE; col++) {
-            placePiece(new Pawn(color, new Position(row, col)));
+            placePiece(PieceFactory.create('P', color, new Position(row, col)));
         }
     }
 
@@ -152,7 +165,7 @@ public class Board {
      */
     public Position findKing(PieceColor color) {
         for (Piece piece : getPieces(color)) {
-            if (piece instanceof King) {
+            if (piece.isKing()) {
                 return piece.getPosition();
             }
         }
@@ -214,6 +227,34 @@ public class Board {
         grid[to.getRow()][to.getCol()] = moving;
         moving.move(to);
         return captured;
+    }
+
+    /**
+     * Removes the piece on a square without recording it as captured.
+     * Used when a promoted pawn is replaced by its new piece.
+     *
+     * @param position the square to empty
+     * @return the piece that was there, or {@code null}
+     */
+    public Piece removePiece(Position position) {
+        Piece piece = getPiece(position);
+        grid[position.getRow()][position.getCol()] = null;
+        return piece;
+    }
+
+    /**
+     * Removes the piece on a square and records it as captured. Used for en
+     * passant, where the captured pawn isn't on the destination square.
+     *
+     * @param position the square of the piece being captured
+     * @return the captured piece, or {@code null} if the square was empty
+     */
+    public Piece capturePiece(Position position) {
+        Piece piece = removePiece(position);
+        if (piece != null) {
+            capturedPieces.add(piece);
+        }
+        return piece;
     }
 
     /**

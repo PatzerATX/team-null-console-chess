@@ -17,6 +17,10 @@ import java.util.List;
  * <p>The sliding pieces (rook, bishop and queen) share the
  * {@link #slide(Board, int[][])} helper, which walks in straight lines
  * until it reaches the edge of the board or another piece.</p>
+ *
+ * <p>Each piece also remembers whether it has moved (needed for castling)
+ * and can make an independent copy of itself, which the rules engine uses to
+ * try out moves on a copy of the board without touching the real game.</p>
  */
 public abstract class Piece {
 
@@ -25,6 +29,9 @@ public abstract class Piece {
 
     /** The square this piece is on. It changes each time the piece moves. */
     private Position position;
+
+    /** Whether this piece has moved at least once this game. Used for castling. */
+    private boolean moved;
 
     /**
      * Creates a piece of the given color on the given square.
@@ -62,6 +69,76 @@ public abstract class Piece {
     protected abstract char getLetter();
 
     /**
+     * Returns the piece's value in centipawns (a pawn is 100), used by the
+     * computer opponent to compare positions. The king returns 0 because it
+     * can never be captured.
+     *
+     * @return the material value of this kind of piece
+     */
+    public abstract int getValue();
+
+    /**
+     * Creates a new piece of the same type, color and position. Each subclass
+     * supplies this so {@link #copy()} can duplicate any piece without knowing its type.
+     *
+     * @return a fresh piece of the same kind
+     */
+    protected abstract Piece createCopy();
+
+    /**
+     * Returns an independent copy of this piece, including whether it has moved.
+     * Changing the copy never affects the original.
+     *
+     * @return a duplicate of this piece
+     */
+    public Piece copy() {
+        Piece duplicate = createCopy();
+        duplicate.moved = this.moved;
+        return duplicate;
+    }
+
+    /**
+     * Returns every square this piece attacks, meaning squares where it could
+     * capture an enemy piece. For most pieces this is the same as
+     * {@link #possibleMoves(Board)}; {@link Pawn} overrides it because pawns
+     * attack diagonally but move straight ahead.
+     *
+     * @param board the current board
+     * @return the squares this piece attacks
+     */
+    public List<Position> attackedSquares(Board board) {
+        return possibleMoves(board);
+    }
+
+    /**
+     * Checks whether this piece is a king. Only {@link King} returns {@code true};
+     * this replaces type checks like {@code instanceof King} elsewhere in the code.
+     *
+     * @return {@code true} if this piece is a king
+     */
+    public boolean isKing() {
+        return false;
+    }
+
+    /**
+     * Checks whether this piece is a pawn. Only {@link Pawn} returns {@code true}.
+     *
+     * @return {@code true} if this piece is a pawn
+     */
+    public boolean isPawn() {
+        return false;
+    }
+
+    /**
+     * Returns the one-letter code for this kind of piece, used in move notation.
+     *
+     * @return 'K', 'Q', 'R', 'B', 'N' or 'p'
+     */
+    public char getTypeLetter() {
+        return getLetter();
+    }
+
+    /**
      * Returns the two-character symbol shown on the board, such as {@code wR} or {@code bp}.
      *
      * @return the color prefix followed by the piece letter
@@ -85,7 +162,7 @@ public abstract class Piece {
      * Most pieces never promote, so this returns {@code false}; {@link Pawn}
      * overrides it to return {@code true} on the far rank.
      *
-     * @return {@code true} if the piece should be replaced by a queen
+     * @return {@code true} if the piece should be replaced by a promoted piece
      */
     public boolean isPromotable() {
         return false;
@@ -93,6 +170,7 @@ public abstract class Piece {
 
     /**
      * Checks whether this piece could move to the given square in its pattern.
+     * This ignores king safety and special moves; {@code ChessRules} adds those.
      *
      * @param board       the current board
      * @param destination the square to check
@@ -114,6 +192,26 @@ public abstract class Piece {
             throw new IllegalArgumentException("A piece can't move to a missing square.");
         }
         this.position = newPosition;
+        this.moved = true;
+    }
+
+    /**
+     * Checks whether this piece has moved at least once this game.
+     *
+     * @return {@code true} if the piece has moved
+     */
+    public boolean hasMoved() {
+        return moved;
+    }
+
+    /**
+     * Marks whether this piece counts as having moved. Used when setting up
+     * demonstration positions, where a piece starts away from its home square.
+     *
+     * @param moved {@code true} if the piece should count as having moved
+     */
+    public void setMoved(boolean moved) {
+        this.moved = moved;
     }
 
     /**

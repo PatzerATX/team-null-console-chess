@@ -49,4 +49,24 @@ public class Knight extends Piece {
     protected char getLetter() {
         return 'N';
     }
+
+    /**
+     * Returns the knight's value for the computer opponent.
+     *
+     * @return {@code 320} centipawns
+     */
+    @Override
+    public int getValue() {
+        return 320;
+    }
+
+    /**
+     * Creates a new knight of the same color on the same square.
+     *
+     * @return a fresh Knight
+     */
+    @Override
+    protected Piece createCopy() {
+        return new Knight(getColor(), getPosition());
+    }
 }

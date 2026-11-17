@@ -47,4 +47,24 @@ public class Bishop extends Piece {
     protected char getLetter() {
         return 'B';
     }
+
+    /**
+     * Returns the bishop's value for the computer opponent.
+     *
+     * @return {@code 330} centipawns
+     */
+    @Override
+    public int getValue() {
+        return 330;
+    }
+
+    /**
+     * Creates a new bishop of the same color on the same square.
+     *
+     * @return a fresh Bishop
+     */
+    @Override
+    protected Piece createCopy() {
+        return new Bishop(getColor(), getPosition());
+    }
 }

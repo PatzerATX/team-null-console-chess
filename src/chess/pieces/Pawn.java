@@ -18,7 +18,8 @@ import java.util.List;
  *
  * <p>White pawns move toward rank 8 and black pawns toward rank 1, using
  * {@link PieceColor#getForwardDirection()}. A pawn that reaches the far rank
- * is promoted to a queen automatically. En passant is not supported.</p>
+ * is promoted to the player's choice of piece, and en passant captures are
+ * added by {@code ChessRules}, because they depend on the previous move.</p>
  */
 public class Pawn extends Piece {
 
@@ -114,5 +115,57 @@ public class Pawn extends Piece {
     @Override
     protected char getLetter() {
         return 'p';
+    }
+
+    /**
+     * Returns the pawn's value for the computer opponent.
+     *
+     * @return {@code 100} centipawns
+     */
+    @Override
+    public int getValue() {
+        return 100;
+    }
+
+    /**
+     * Creates a new pawn of the same color on the same square.
+     *
+     * @return a fresh Pawn
+     */
+    @Override
+    protected Piece createCopy() {
+        return new Pawn(getColor(), getPosition());
+    }
+
+    /**
+     * Identifies this piece as a pawn.
+     *
+     * @return {@code true}
+     */
+    @Override
+    public boolean isPawn() {
+        return true;
+    }
+
+    /**
+     * Returns the two squares diagonally in front of the pawn, whether or not
+     * an enemy is there. A pawn attacks those squares even though it can only
+     * move into them by capturing, which matters for check and castling.
+     *
+     * @param board the current board (not needed for pawn attacks)
+     * @return the one or two diagonal squares in front of the pawn
+     */
+    @Override
+    public List<Position> attackedSquares(Board board) {
+        List<Position> attacks = new ArrayList<>();
+        int forward = getColor().getForwardDirection();
+        int[] sides = {-1, 1};
+        for (int side : sides) {
+            Position diagonal = getPosition().offset(forward, side);
+            if (diagonal != null) {
+                attacks.add(diagonal);
+            }
+        }
+        return attacks;
     }
 }
