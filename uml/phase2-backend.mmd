@@ -1,0 +1,279 @@
+classDiagram
+  direction TB
+  class PieceColor {
+    <<enumeration>>
+    WHITE
+    BLACK
+    -char prefix
+    -int forwardDirection
+    +displayName() String
+    +getForwardDirection() int
+    +getPrefix() char
+    +opposite() PieceColor
+  }
+  class Position {
+    +int BOARD_SIZE$
+    -int row
+    -int col
+    +Position(int, int)
+    +equals(Object) boolean
+    +fromNotation(String)$ Position
+    +getCol() int
+    +getFile() char
+    +getRank() int
+    +getRow() int
+    +hashCode() int
+    +isOnBoard(int, int)$ boolean
+    +offset(int, int) Position
+    +toString() String
+  }
+  class Player {
+    -String name
+    -PieceColor color
+    +Player(String, PieceColor)
+    +getColor() PieceColor
+    +getName() String
+    +toString() String
+  }
+  class MoveType {
+    <<enumeration>>
+    NORMAL
+    CASTLE_KINGSIDE
+    CASTLE_QUEENSIDE
+    EN_PASSANT
+    +isCastle() boolean
+  }
+  class Move {
+    -Position from
+    -Position to
+    -Piece piece
+    -Piece captured
+    -MoveType type
+    -PromotionPiece promotion
+    -String suffix
+    +Move(Position, Position, Piece, Piece, MoveType, PromotionPiece)
+    +getCaptured() Piece
+    +getFrom() Position
+    +getPiece() Piece
+    +getPromotion() PromotionPiece
+    +getTo() Position
+    +getType() MoveType
+    +isCapture() boolean
+    +isPawnDoubleStep() boolean
+    +isPromotion() boolean
+    +matches(Position, Position) boolean
+    +toDescription() String
+    +toNotation() String
+    +toString() String
+    +withPromotion(PromotionPiece) Move
+    +withSuffix(String) Move
+  }
+  class Board {
+    -Piece[][] grid
+    -List~Piece~ capturedPieces
+    +Board()
+    +capturePiece(Position) Piece
+    +clear() void
+    +copy() Board
+    +findKing(PieceColor) Position
+    +getCapturedPieces() List~Piece~
+    +getCapturedPieces(PieceColor) List~Piece~
+    +getPiece(Position) Piece
+    +getPieces(PieceColor) List~Piece~
+    +initialize() void
+    +isEmpty(Position) boolean
+    +isPathClear(Position, Position) boolean
+    +movePiece(Position, Position) Piece
+    +placePiece(Piece) void
+    +removePiece(Position) Piece
+  }
+  class Piece {
+    <<abstract>>
+    -PieceColor color
+    -Position position
+    -boolean moved
+    #Piece(PieceColor, Position)
+    +attackedSquares(Board) List~Position~
+    #canLandOn(Board, Position) boolean
+    +canMoveTo(Board, Position) boolean
+    +copy() Piece
+    #createCopy()* Piece
+    +getColor() PieceColor
+    #getLetter()* char
+    +getName() String
+    +getPosition() Position
+    +getSymbol() String
+    +getTypeLetter() char
+    +getValue()* int
+    +hasMoved() boolean
+    #isEnemy(Piece) boolean
+    +isKing() boolean
+    +isPawn() boolean
+    +isPromotable() boolean
+    +move(Position) void
+    +possibleMoves(Board)* List~Position~
+    +setMoved(boolean) void
+    #slide(Board, int[][]) List~Position~
+    #step(Board, int[][]) List~Position~
+    +toString() String
+  }
+  class King {
+    +King(PieceColor, Position)
+    #createCopy() Piece
+    #getLetter() char
+    +getValue() int
+    +isKing() boolean
+    +possibleMoves(Board) List~Position~
+  }
+  class Queen {
+    +Queen(PieceColor, Position)
+    #createCopy() Piece
+    #getLetter() char
+    +getValue() int
+    +possibleMoves(Board) List~Position~
+  }
+  class Rook {
+    +Rook(PieceColor, Position)
+    #createCopy() Piece
+    #getLetter() char
+    +getValue() int
+    +possibleMoves(Board) List~Position~
+  }
+  class Bishop {
+    +Bishop(PieceColor, Position)
+    #createCopy() Piece
+    #getLetter() char
+    +getValue() int
+    +possibleMoves(Board) List~Position~
+  }
+  class Knight {
+    +Knight(PieceColor, Position)
+    #createCopy() Piece
+    #getLetter() char
+    +getValue() int
+    +possibleMoves(Board) List~Position~
+  }
+  class Pawn {
+    +Pawn(PieceColor, Position)
+    +attackedSquares(Board) List~Position~
+    #createCopy() Piece
+    #getLetter() char
+    +getValue() int
+    +isPawn() boolean
+    +isPromotable() boolean
+    +possibleMoves(Board) List~Position~
+  }
+  class PromotionPiece {
+    <<enumeration>>
+    QUEEN
+    ROOK
+    BISHOP
+    KNIGHT
+    -String displayName
+    -char letter
+    +create(PieceColor, Position) Piece
+    +fromLetter(char)$ PromotionPiece
+    +getDisplayName() String
+    +getLetter() char
+  }
+  class PieceFactory {
+    +String BACK_RANK$
+    +create(char, PieceColor, String)$ Piece
+    +create(char, PieceColor, Position)$ Piece
+    +createMoved(char, PieceColor, String)$ Piece
+  }
+  class ChessRules {
+    +applyMove(Board, Move)$ void
+    +isInCheck(Board, PieceColor)$ boolean
+    +isSquareAttacked(Board, Position, PieceColor)$ boolean
+    +lastRow(PieceColor)$ int
+    +leavesKingInCheck(Board, Move)$ boolean
+    +legalMoves(Board, PieceColor, Move)$ List~Move~
+    +legalMovesFrom(Board, Position, Move)$ List~Move~
+    +statusFor(Board, PieceColor, Move)$ GameStatus
+  }
+  class Game {
+    -Board board
+    -Player whitePlayer
+    -Player blackPlayer
+    -List~Move~ moveHistory
+    -List~GameListener~ listeners
+    -PieceColor currentTurn
+    -GameStatus status
+    -Player winner
+    +Game(String, String)
+    +addListener(GameListener) void
+    +getAllLegalMoves() List~Move~
+    +getBoard() Board
+    +getCurrentPlayer() Player
+    +getCurrentTurn() PieceColor
+    +getHistoryLines() List~String~
+    +getLastMove() Move
+    +getLegalMoves(Position) List~Move~
+    +getMoveHistory() List~Move~
+    +getPlayer(PieceColor) Player
+    +getStatus() GameStatus
+    +getWinner() Player
+    +isInCheck(PieceColor) boolean
+    +isOver() boolean
+    +isPromotionMove(Position, Position) boolean
+    +loadPosition(List~Piece~, PieceColor) void
+    +removeListener(GameListener) void
+    +start() void
+    +tryMove(Position, Position, PromotionPiece) MoveResult
+    +tryMove(Move) MoveResult
+    +tryMove(Position, Position) MoveResult
+  }
+  class GameListener {
+    <<interface>>
+    +onGameOver(GameStatus, Player) void
+    +onGameStarted() void
+    +onMoveMade(Move, GameStatus) void
+    +onMoveRejected(Position, Position, String) void
+  }
+  class GameStatus {
+    <<enumeration>>
+    IN_PROGRESS
+    CHECK
+    CHECKMATE
+    STALEMATE
+    +isGameOver() boolean
+  }
+  class MoveResult {
+    -boolean success
+    -String message
+    -Move move
+    +failure(String)$ MoveResult
+    +getMessage() String
+    +getMove() Move
+    +isSuccess() boolean
+    +success(String, Move)$ MoveResult
+  }
+  Player --> "1" PieceColor : color
+  Move --> "2" Position : from, to
+  Move --> "1..2" Piece : piece, captured
+  Move --> "1" MoveType : type
+  Move --> "1" PromotionPiece : promotion
+  Board --> "0..32" Piece : grid, capturedPieces
+  Piece --> "1" PieceColor : color
+  Piece --> "1" Position : position
+  Piece <|-- King
+  Piece <|-- Queen
+  Piece <|-- Rook
+  Piece <|-- Bishop
+  Piece <|-- Knight
+  Piece <|-- Pawn
+  Game --> "1" Board : board
+  Game --> "2" Player : whitePlayer, blackPlayer
+  Game --> "*" Move : moveHistory
+  Game --> "*" GameListener : listeners
+  Game --> "1" PieceColor : currentTurn
+  Game --> "1" GameStatus : status
+  MoveResult --> "1" Move : move
+  Game ..> ChessRules : asks for legal moves
+  ChessRules ..> Board : reads and copies
+  ChessRules ..> Move : creates
+  Board ..> PieceFactory : sets up pieces
+  PromotionPiece ..> PieceFactory : creates promoted piece
+  PieceFactory ..> Piece : creates
+  Game ..> MoveResult : returns

@@ -1,0 +1,231 @@
+classDiagram
+  direction TB
+  class ChessGuiApp {
+    +main(String[])$ void
+  }
+  class ChessFrame {
+    -GameController controller
+    +ChessFrame()
+    +getController() GameController
+  }
+  class GameController {
+    -Window owner
+    -BoardPanel boardPanel
+    -SidePanel sidePanel
+    -GameLogger gameLogger
+    -Random random
+    -Map~PieceColor,MoveStrategy~ computer
+    -Game game
+    -GameSettings settings
+    -Position selected
+    -boolean thinking
+    -Timer computerTimer
+    +GameController(Window, BoardPanel, SidePanel)
+    +getGame() Game
+    +newGame() void
+    +onGameOver(GameStatus, Player) void
+    +onGameStarted() void
+    +onMoveMade(Move, GameStatus) void
+    +restart() void
+    +squareClicked(Position) void
+  }
+  class BoardPanel {
+    -Board board
+    -Position selected
+    -List~Move~ targets
+    -Position checkSquare
+    -GameController controller
+    +BoardPanel()
+    #paintComponent(Graphics) void
+    +setBoard(Board) void
+    +setCheckSquare(Position) void
+    +setController(GameController) void
+    +setSelection(Position, List~Move~) void
+  }
+  class SidePanel {
+    -JLabel turnLabel
+    -JTextArea statusText
+    -JLabel whitePlayerLabel
+    -JLabel blackPlayerLabel
+    -CapturedStrip whiteCaptures
+    -CapturedStrip blackCaptures
+    -DefaultListModel~String~ historyModel
+    -JList~String~ historyList
+    -JButton newGameButton
+    -JButton restartButton
+    +SidePanel()
+    +getNewGameButton() JButton
+    +getRestartButton() JButton
+    +setCaptured(List~Piece~, List~Piece~) void
+    +setGameOver(String) void
+    +setHistory(List~String~) void
+    +setPlayers(String, String) void
+    +setStatus(String, Tone) void
+    +setTurn(PieceColor, String) void
+  }
+  class Tone {
+    <<enumeration>>
+    INFO
+    ERROR
+    WARNING
+    RESULT
+    -Color color
+  }
+  class GameSettings {
+    -String playerName
+    -boolean versusComputer
+    -PieceColor humanColor
+    -Difficulty difficulty
+    -String secondName
+    +GameSettings(String, boolean, PieceColor, Difficulty, String)
+    +defaults()$ GameSettings
+    +getDifficulty() Difficulty
+    +getHumanColor() PieceColor
+    +getPlayerName() String
+    +getSecondName() String
+    +isComputer(PieceColor) boolean
+    +isVersusComputer() boolean
+    +nameFor(PieceColor) String
+  }
+  class NewGameDialog {
+    -GameSettings result
+    -JRadioButton computerMode
+    -JRadioButton twoPlayerMode
+    -JTextField nameField
+    -JTextField secondField
+    -JComboBox~String~ colorBox
+    -JComboBox~Difficulty~ levelBox
+    +ask(Window, GameSettings)$ GameSettings
+  }
+  class PromotionDialog {
+    +ask(Component, PieceColor)$ PromotionPiece
+  }
+  class PieceGlyphs {
+    +draw(Graphics2D, char, PieceColor, double, double, double)$ void
+    +symbolFor(char)$ char
+  }
+  class MoveStrategy {
+    <<interface>>
+    +chooseMove(Board, PieceColor, Move) Move
+    +getName() String
+  }
+  class RandomAI {
+    -Random random
+    +RandomAI(Random)
+    +chooseMove(Board, PieceColor, Move) Move
+    +getName() String
+  }
+  class MinimaxAI {
+    ~int MATE_SCORE$
+    -int depth
+    -Random random
+    +MinimaxAI(int, Random)
+    +chooseMove(Board, PieceColor, Move) Move
+    +getDepth() int
+    +getName() String
+  }
+  class BoardEvaluator {
+    +evaluate(Board, PieceColor)$ int
+    ~positionBonus(Piece)$ int
+  }
+  class SafeMoveSelector {
+    -MoveStrategy inner
+    -Random random
+    +SafeMoveSelector(MoveStrategy, Random)
+    +chooseMove(Board, PieceColor, Move) Move
+    +getName() String
+  }
+  class LoggingMoveStrategy {
+    -MoveStrategy inner
+    +LoggingMoveStrategy(MoveStrategy)
+    +chooseMove(Board, PieceColor, Move) Move
+    +getName() String
+  }
+  class Difficulty {
+    <<enumeration>>
+    EASY
+    MEDIUM
+    HARD
+    -String label
+    -String description
+    +createStrategy(Random) MoveStrategy
+    +getDescription() String
+    +getLabel() String
+    +toString() String
+  }
+  class LoggingSetup {
+    +String ROOT_LOGGER$
+    +configure()$ boolean
+  }
+  class GameLogger {
+    -int moveNumber
+    +GameLogger()
+    +onGameOver(GameStatus, Player) void
+    +onGameStarted() void
+    +onMoveMade(Move, GameStatus) void
+    +onMoveRejected(Position, Position, String) void
+  }
+  class ChessApp {
+    +main(String[])$ void
+  }
+  class ConsoleUI {
+    -Scanner scanner
+    -InputParser parser
+    -Game game
+    +ConsoleUI(Scanner)
+    +run() void
+  }
+  class InputParser {
+    +InputParser()
+    +getCommand(String) Command
+    +parseMove(String) Position[]
+    +parsePromotion(String) PromotionPiece
+  }
+  class Command {
+    <<enumeration>>
+    MOVE
+    HELP
+    HISTORY
+    CAPTURED
+    RESTART
+    QUIT
+  }
+  ChessFrame --> "1" GameController : controller
+  GameController --> "1" BoardPanel : boardPanel
+  GameController --> "1" SidePanel : sidePanel
+  GameController --> "1" GameLogger : gameLogger
+  GameController --> "*" MoveStrategy : computer
+  GameController --> "1" Game : game
+  GameController --> "1" GameSettings : settings
+  GameController --> "1" Position : selected
+  GameListener <|.. GameController
+  BoardPanel --> "1" Board : board
+  BoardPanel --> "1" Position : selected
+  BoardPanel --> "*" Move : targets
+  BoardPanel --> "1" GameController : controller
+  GameSettings --> "1" PieceColor : humanColor
+  GameSettings --> "1" Difficulty : difficulty
+  NewGameDialog --> "1" GameSettings : result
+  MoveStrategy <|.. RandomAI
+  MoveStrategy <|.. MinimaxAI
+  SafeMoveSelector --> "1" MoveStrategy : inner
+  MoveStrategy <|.. SafeMoveSelector
+  LoggingMoveStrategy --> "1" MoveStrategy : inner
+  MoveStrategy <|.. LoggingMoveStrategy
+  GameListener <|.. GameLogger
+  ConsoleUI --> "1" InputParser : parser
+  ConsoleUI --> "1" Game : game
+  ChessGuiApp ..> ChessFrame : creates
+  ChessGuiApp ..> LoggingSetup : configures
+  ChessFrame ..> BoardPanel : creates
+  ChessFrame ..> SidePanel : creates
+  SidePanel ..> Tone : status colors
+  GameController ..> NewGameDialog : opens
+  GameController ..> PromotionDialog : opens
+  BoardPanel ..> PieceGlyphs : draws pieces
+  Difficulty ..> LoggingMoveStrategy : creates
+  MinimaxAI ..> BoardEvaluator : scores positions
+  ChessApp ..> ConsoleUI : creates
+  Game --> "*" GameListener : listeners
+  ConsoleUI ..> Command : reads
+  InputParser ..> Command : returns
