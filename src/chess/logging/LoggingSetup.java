@@ -60,6 +60,10 @@ public final class LoggingSetup {
      */
     private static final class OneLineFormatter extends Formatter {
 
+        /** Creates the formatter. */
+        OneLineFormatter() {
+        }
+
         /**
          * Formats one record.
          *

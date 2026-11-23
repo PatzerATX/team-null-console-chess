@@ -21,6 +21,11 @@ public class GameLogger implements GameListener {
     /** Counts moves in the current game for numbered log lines. */
     private int moveNumber;
 
+    /** Creates a logger; it starts writing once it is added to a game as a listener. */
+    public GameLogger() {
+        moveNumber = 0;
+    }
+
     /** Logs the start of a game. */
     @Override
     public void onGameStarted() {
